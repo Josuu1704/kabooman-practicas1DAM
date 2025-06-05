@@ -13,12 +13,15 @@ public class Main extends ApplicationAdapter {
     private Texture image;
     private Jugador jugador;
     private FitViewport viewport;
+    private BombaManager bombaManager; // NUEVO
 
     @Override
     public void create() {
         batch = new SpriteBatch();
         image = new Texture("mapa.jpg"); // Fondo
         jugador = new Jugador("marroqui.png", 3, 2); // Posición dentro del mundo
+        bombaManager = new BombaManager(); // NUEVO
+        jugador.setBombaManager(bombaManager); // NUEVO
         viewport = new FitViewport(8, 5); // Mundo lógico 8x5
     }
 
@@ -30,16 +33,18 @@ public class Main extends ApplicationAdapter {
     @Override
     public void render() {
         ScreenUtils.clear(1, 1, 1, 1);
-
         viewport.apply();
         batch.setProjectionMatrix(viewport.getCamera().combined);
 
+        float delta = Gdx.graphics.getDeltaTime();
         jugador.actualizar();
+        bombaManager.actualizar(delta); // NUEVO
         limitarJugador();
 
         batch.begin();
         batch.draw(image, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight()); // Fondo
         jugador.render(batch); // Jugador encima
+        bombaManager.render(batch); // NUEVO
         batch.end();
     }
 
@@ -58,5 +63,6 @@ public class Main extends ApplicationAdapter {
         batch.dispose();
         image.dispose();
         jugador.dispose();
+        bombaManager.dispose(); // NUEVO
     }
 }
