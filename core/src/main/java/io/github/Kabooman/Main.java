@@ -2,28 +2,35 @@ package io.github.Kabooman;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
-    private Texture image;
     private Jugador jugador;
     private FitViewport viewport;
-    private BombaManager bombaManager; // NUEVO
+    private BombaManager bombaManager;
+    private Mapa mapa;
+    private OrthographicCamera camara;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-        image = new Texture("mapa.jpg"); // Fondo
-        jugador = new Jugador("marroqui.png", 3, 2); // Posición dentro del mundo
-        bombaManager = new BombaManager(); // NUEVO
-        jugador.setBombaManager(bombaManager); // NUEVO
-        viewport = new FitViewport(8, 5); // Mundo lógico 8x5
+        camara = new OrthographicCamera();
+        viewport = new FitViewport(15, 13, camara); // tamaño del mundo lógico
+        camara.position.set(8 / 2f, 5 / 2f, 0);
+        camara.update();
+
+        mapa = new Mapa("nivel1.tmx");
+        jugador = new Jugador("marroqui.png", 3, 2);
+        bombaManager = new BombaManager();
+        jugador.setBombaManager(bombaManager);
     }
+
 
     @Override
     public void resize(int width, int height) {
@@ -32,19 +39,20 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void render() {
-        ScreenUtils.clear(1, 1, 1, 1);
-        viewport.apply();
-        batch.setProjectionMatrix(viewport.getCamera().combined);
+        Gdx.gl.glClearColor(1, 1, 1, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        float delta = Gdx.graphics.getDeltaTime();
+        camara.update();
+        mapa.renderizar(camara);
+
         jugador.actualizar();
-        bombaManager.actualizar(delta); // NUEVO
+        bombaManager.actualizar(Gdx.graphics.getDeltaTime());
         limitarJugador();
 
+        batch.setProjectionMatrix(camara.combined);
         batch.begin();
-        batch.draw(image, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight()); // Fondo
-        jugador.render(batch); // Jugador encima
-        bombaManager.render(batch); // NUEVO
+        jugador.render(batch);
+        bombaManager.render(batch);
         batch.end();
     }
 
@@ -61,8 +69,9 @@ public class Main extends ApplicationAdapter {
     @Override
     public void dispose() {
         batch.dispose();
-        image.dispose();
         jugador.dispose();
-        bombaManager.dispose(); // NUEVO
+        bombaManager.dispose();
+        mapa.dispose();
     }
 }
+
